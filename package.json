@@ -3,12 +3,11 @@
     "url": "https://github.com/cotag/a2-file-drop/issues"
   },
   "contributors": [],
-  "dependencies": {
-    "angular2": "latest",
-    "rxjs": "latest"
+  "devDependencies": {
+    "angular2": "latest"
   },
+  "dependencies": {},
   "description": "Angular 2 file drag and drop manager",
-  "devDependencies": {},
   "directories": {},
   "homepage": "https://github.com/cotag/a2-file-drop",
   "license": "MIT",
