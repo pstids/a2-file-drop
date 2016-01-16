@@ -4,6 +4,7 @@ export declare class DropService {
     private _dropTargets;
     private _currentTarget;
     private _streams;
+    private _observers;
     private _streamMapping;
     private _callbacks;
     private _drop;
@@ -12,12 +13,13 @@ export declare class DropService {
     static getInstance(): DropService;
     constructor();
     register(name: string, element: HTMLScriptElement, callback: (state: boolean) => void): () => void;
-    subscribe(name: string, func: (obj: any) => any): any;
+    getStream(name: string): any;
     private _ensureStream(name);
     private _preventDefault(event);
     private _checkTarget(obj);
     private _findStream(element);
-    private _performCallback(target, state);
+    private _performCallback(target, state, stream?);
     private _updateClasses(obj);
     private _removeClass(obj);
+    private _notifyObservers(stream, object);
 }

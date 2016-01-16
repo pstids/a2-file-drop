@@ -16,10 +16,29 @@ discoverability.
 
 ## Usage
 
+Note:: You can create your own directive that is customised for your application.
+`DropService` does all the heavy lifting allowing maximum flexibility for app integration.
+
+### Directive Provided
+
 1. Include the directive in your Component or Directive
      * `import {DropTarget} from 'a2-file-drop/dist/drop-target';`
 2. Add the directive to the target elements
      * `<div drop-target file-stream="media-uploads" highlight="hover-class"></div>`
+
+### Processing the files once they have been dropped
+
+1. Create a service that will `import {DropService} from 'a2-file-drop/dist/drop-service';`
+2. Observe events coming from the relevent file stream
+    * `var stream = DropService.getInstance().getStream('media');`
+    * `stream.filter().map()` etc etc
+    * `stream.subscribe(function (obj) { if (obj.event === 'drop') {}});`
+
+The subscription emit events:
+
+* `'over'`: There is currently a hover event
+* `'left'`: There is no more hover event
+* `'drop'`: Files have been dropped
 
 
 ## Options

@@ -1,5 +1,6 @@
 // Require what we need from rxjs
 import {Observable} from 'rxjs/Rx';
+import {DropFiles} from './drop-files';
 
 export class DropService {
     static instance:DropService;
@@ -10,9 +11,10 @@ export class DropService {
     private _currentTarget:HTMLScriptElement;
 
     // These track the relationship between elements, callbacks and file streams
-    private _streams       = {};
-    private _streamMapping = {};
-    private _callbacks     = {};
+    private _streams       = {}; // stream name => shared observable
+    private _observers     = {}; // stream name => observer
+    private _streamMapping = {}; // stream name => element array
+    private _callbacks     = {}; // stream name => callback array
 
     // This are our event observables
     private _drop:     any;
@@ -21,7 +23,7 @@ export class DropService {
 
 
     // This is a singleton class
-    static getInstance() {
+    static getInstance(): DropService {
         if (!DropService.instance) {
             DropService.isCreating = true;
             DropService.instance = new DropService();
@@ -44,7 +46,7 @@ export class DropService {
 
         this._dragover  = Observable.fromEvent(window, 'dragover')
             .map(this._preventDefault)
-            .throttleTime(300 /* ms */) // Helps with performance a lot
+            //.throttleTime(300 /* ms */) // Helps with performance a lot
             .filter(this._checkTarget.bind(this));
 
         this._dragleave = Observable.fromEvent(window, 'dragleave')
@@ -67,9 +69,15 @@ export class DropService {
         this._dragover.subscribe(this._updateClasses.bind(this));
         this._dragleave.subscribe(this._removeClass.bind(this));
         this._drop.subscribe(function (obj) {
-            this._removeClass(obj);
+            var observer = this._removeClass(obj);
 
-            // TODO:: Extract files and pass them to the correct stream
+            // Stream the files
+            if (observer) {
+                observer.next({
+                    event:'drop',
+                    data: new DropFiles(obj.originalEvent)
+                });
+            }
         }.bind(this));
 
         // Detect when the mouse leaves the window (special case)
@@ -107,16 +115,24 @@ export class DropService {
     }
 
     // Hooks up a function to recieve a the files from a particular stream
-    subscribe(name: string, func: (obj: any) => any) {
+    // 3 events: 'over', 'left', 'drop'
+    getStream(name: string) {
         this._ensureStream(name);
-        return this._streams[name].subscribe(func);
+        return this._streams[name];
     }
 
 
     // Initialises a new file stream if it did not exist
     private _ensureStream(name: string) {
         if (!this._streams[name]) {
-            this._streams[name] = new Observable().share();
+            this._streams[name] = new Observable<{event:string, data?:DropFiles}>(function (observer) {
+                this._observers[name] = observer;
+
+                return function () {
+                    this._observers[name] = null;
+                };
+            }.bind(this)).share();
+            this._observers[name] = null;
             this._streamMapping[name] = [];
             this._callbacks[name] = [];
         }
@@ -167,34 +183,57 @@ export class DropService {
     }
 
     // Informs the element of its highlight state
-    private _performCallback(target: HTMLScriptElement, state: boolean) {
-        var callbacks = this._callbacks[this._findStream(target)];
-        callbacks.forEach(function (cb) {
+    private _performCallback(target: HTMLScriptElement, state: boolean, stream: string = null) {
+        stream = stream || this._findStream(target);
+
+        this._callbacks[stream].forEach(function (cb) {
             cb(state);
         });
+
+        // We return stream so we don't ever have to look it up twice
+        return stream;
     }
 
     // Based on the current target, determines if a class change needs to occur
     private _updateClasses(obj) {
         var target = obj.target,
-            currentTarget = this._currentTarget;
+            currentTarget = this._currentTarget,
+            stream:string;
 
+        // Have we moved off a target
         if (currentTarget && currentTarget !== target) {
-            this._performCallback(currentTarget, false);
+            stream = this._performCallback(currentTarget, false);
+            this._notifyObservers(stream, {event: 'left'});
         }
 
+        // Have we moved over a new target
         if (target && currentTarget !== target) {
-            this._currentTarget = target;
-            this._performCallback(target, true);
-            return true;
+            stream = this._performCallback(target, true, stream);
+
+            // If this is a new hover - let our subscribers know
+            if (!currentTarget) {
+                this._notifyObservers(stream, {
+                    event: 'over'
+                });
+            }
         }
 
         this._currentTarget = target;
-        return false;
     }
 
     private _removeClass(obj) {
+        var stream:string = this._performCallback(obj.target, false);
+
         this._currentTarget = null;
-        this._performCallback(obj.target, false);
+
+        return this._notifyObservers(stream, {event: 'left'});
+    }
+
+    private _notifyObservers(stream:string, object: {event:string, data?:DropFiles}) {
+        var observer = this._observers[stream];
+        if (observer) {
+            observer.next(object);
+        }
+        return observer;
     }
 }

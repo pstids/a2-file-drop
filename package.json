@@ -4,7 +4,8 @@
   },
   "contributors": [],
   "devDependencies": {
-    "angular2": "latest"
+    "angular2": "latest",
+    "rxjs": "latest"
   },
   "dependencies": {},
   "description": "Angular 2 file drag and drop manager",
@@ -25,5 +26,5 @@
     "url": "git+https://github.com/cotag/a2-file-drop.git"
   },
   "scripts": {},
-  "version": "0.0.0-alpha.2"
+  "version": "1.0.0"
 }

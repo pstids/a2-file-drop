@@ -1,13 +1,15 @@
 // Require what we need from rxjs
 var Rx_1 = require('rxjs/Rx');
+var drop_files_1 = require('./drop-files');
 var DropService = (function () {
     function DropService() {
         // All the elements we are interested in highlighting when the mouse is over them
         this._dropTargets = [];
         // These track the relationship between elements, callbacks and file streams
-        this._streams = {};
-        this._streamMapping = {};
-        this._callbacks = {};
+        this._streams = {}; // stream name => shared observable
+        this._observers = {}; // stream name => observer
+        this._streamMapping = {}; // stream name => element array
+        this._callbacks = {}; // stream name => callback array
         if (!DropService.isCreating) {
             throw new Error('You can\'t call new in Singleton instances!');
         }
@@ -17,7 +19,6 @@ var DropService = (function () {
             .filter(this._checkTarget.bind(this));
         this._dragover = Rx_1.Observable.fromEvent(window, 'dragover')
             .map(this._preventDefault)
-            .throttleTime(300 /* ms */) // Helps with performance a lot
             .filter(this._checkTarget.bind(this));
         this._dragleave = Rx_1.Observable.fromEvent(window, 'dragleave')
             .map(this._preventDefault)
@@ -34,8 +35,14 @@ var DropService = (function () {
         this._dragover.subscribe(this._updateClasses.bind(this));
         this._dragleave.subscribe(this._removeClass.bind(this));
         this._drop.subscribe(function (obj) {
-            this._removeClass(obj);
-            // TODO:: Extract files and pass them to the correct stream
+            var observer = this._removeClass(obj);
+            // Stream the files
+            if (observer) {
+                observer.next({
+                    event: 'drop',
+                    data: new drop_files_1.DropFiles(obj.originalEvent)
+                });
+            }
         }.bind(this));
         // Detect when the mouse leaves the window (special case)
         document.addEventListener('mouseout', function (event) {
@@ -75,14 +82,21 @@ var DropService = (function () {
         };
     };
     // Hooks up a function to recieve a the files from a particular stream
-    DropService.prototype.subscribe = function (name, func) {
+    // 3 events: 'over', 'left', 'drop'
+    DropService.prototype.getStream = function (name) {
         this._ensureStream(name);
-        return this._streams[name].subscribe(func);
+        return this._streams[name];
     };
     // Initialises a new file stream if it did not exist
     DropService.prototype._ensureStream = function (name) {
         if (!this._streams[name]) {
-            this._streams[name] = new Rx_1.Observable().share();
+            this._streams[name] = new Rx_1.Observable(function (observer) {
+                this._observers[name] = observer;
+                return function () {
+                    this._observers[name] = null;
+                };
+            }.bind(this)).share();
+            this._observers[name] = null;
             this._streamMapping[name] = [];
             this._callbacks[name] = [];
         }
@@ -121,29 +135,46 @@ var DropService = (function () {
         return null;
     };
     // Informs the element of its highlight state
-    DropService.prototype._performCallback = function (target, state) {
-        var callbacks = this._callbacks[this._findStream(target)];
-        callbacks.forEach(function (cb) {
+    DropService.prototype._performCallback = function (target, state, stream) {
+        if (stream === void 0) { stream = null; }
+        stream = stream || this._findStream(target);
+        this._callbacks[stream].forEach(function (cb) {
             cb(state);
         });
+        // We return stream so we don't ever have to look it up twice
+        return stream;
     };
     // Based on the current target, determines if a class change needs to occur
     DropService.prototype._updateClasses = function (obj) {
-        var target = obj.target, currentTarget = this._currentTarget;
+        var target = obj.target, currentTarget = this._currentTarget, stream;
+        // Have we moved off a target
         if (currentTarget && currentTarget !== target) {
-            this._performCallback(currentTarget, false);
+            stream = this._performCallback(currentTarget, false);
+            this._notifyObservers(stream, { event: 'left' });
         }
+        // Have we moved over a new target
         if (target && currentTarget !== target) {
-            this._currentTarget = target;
-            this._performCallback(target, true);
-            return true;
+            stream = this._performCallback(target, true, stream);
+            // If this is a new hover - let our subscribers know
+            if (!currentTarget) {
+                this._notifyObservers(stream, {
+                    event: 'over'
+                });
+            }
         }
         this._currentTarget = target;
-        return false;
     };
     DropService.prototype._removeClass = function (obj) {
+        var stream = this._performCallback(obj.target, false);
         this._currentTarget = null;
-        this._performCallback(obj.target, false);
+        return this._notifyObservers(stream, { event: 'left' });
+    };
+    DropService.prototype._notifyObservers = function (stream, object) {
+        var observer = this._observers[stream];
+        if (observer) {
+            observer.next(object);
+        }
+        return observer;
     };
     DropService.isCreating = false;
     return DropService;
