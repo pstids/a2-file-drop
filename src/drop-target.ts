@@ -6,14 +6,14 @@ import {DropService} from './drop-service';
 @Directive({
     selector: '[drop-target]',
     inputs: [
-        'bind: drop-target',    // defaults to self, otherwise you can define a valid querySelector
-        'highlight',            // defines the hover class to apply, defaults to: drop-hover
-        'stream: file-stream'   // name of the stream the files should be sent to
+        'bind: drop-target',        // defaults to self, otherwise you can define a valid querySelector
+        'highlight: drop-indicate', // defines the hover class to apply, defaults to: drop-indicate
+        'stream: drop-stream'       // name of the stream the files should be sent to
     ]
 })
 export class DropTarget implements OnInit, OnDestroy {
     stream: string;
-    highlight: string = 'drop-hover';
+    highlight: string = 'drop-indicate';
     bind: string;
 
     private _element: any;

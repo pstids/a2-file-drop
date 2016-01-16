@@ -24,7 +24,7 @@ Note:: You can create your own directive that is customised for your application
 1. Include the directive in your Component or Directive
      * `import {DropTarget} from 'a2-file-drop/dist/drop-target';`
 2. Add the directive to the target elements
-     * `<div drop-target file-stream="media-uploads" highlight="hover-class"></div>`
+     * `<div drop-target drop-stream="media-uploads" drop-indicate="hover-class"></div>`
 
 ### Processing the files once they have been dropped
 
@@ -46,8 +46,8 @@ The subscription emit events:
 * `drop-target="#selector"` if you want to use a different element as your actual target (html, body etc)
     * This makes drop box style apps where the whole page is a drop target possible
     * Defaults to the element defined on if no selector is provided
-* `file-stream="stream name"` is the name your upload logic will use to recieve dropped file data
-* `highlight="class-name"` is the class added to the drop-target when the mouse pointer is above
+* `drop-stream="stream name"` is the name your upload logic will use to recieve dropped file data
+* `drop-indicate="class-name"` is the class added to the drop-target when the mouse pointer is above
 
 
 ## Building from src

@@ -1,59 +1,60 @@
 
 export class DropFiles {
-    length:number;
+    promise: Promise<DropFiles>;
+
+    length:number = 0;
     totalSize:number = 0;
     files:Array<any> = [];
     calculating:boolean = false;
 
     private _pending:Array<any>;
-    private _callback:(files: DropFiles) => void;
+    private resolve:any;
+    private reject:any;
 
     constructor(event:any) {
         var files:Array<any> = event.dataTransfer.files,
             items:Array<any> = event.dataTransfer.items,
             either:Array<any> = items || files;
 
-        if (!either || either.length === 0) {
-            return;
-        }
-
-        // Do we have file path information available
-        if (either[0].kind) {
-            this._pending = [{
-                items: items,
-                folders: true,
-                path: ''
-            }];
-            this.calculating = true;
-            // files are flattened so this should be accurate
-            // at least until we are finished processing
-            this.length = files.length;
-            this.processPending();
-        } else {
-            var i, file;
-
-            // Clone the files array
-            for (i = 0; i < files.length; i += 1) {
-                file = files[i];
-
-                // ensure the file has some content
-                if (file.type || file.size > 0) {
-                    this.totalSize += file.size;
-                    this.files.push(file);
-                }
+        this.promise = new Promise(function(resolve, reject) {
+            if (!either || either.length === 0) {
+                reject('no files found');
+                return;
             }
 
-            this.length = files.length;
-        }
-    }
+            // Do we have file path information available
+            if (either[0].kind) {
+                this.resolve = resolve;
+                this.reject = reject;
 
-    // Allow listeners to be informed when any processing is complete
-    onReady(callback:(files: DropFiles) => void) {
-        if (this.calculating) {
-            this._callback = callback;
-        } else {
-            callback(this);
-        }
+                this._pending = [{
+                    items: items,
+                    folders: true,
+                    path: ''
+                }];
+                this.calculating = true;
+                // files are flattened so this should be accurate
+                // at least until we are finished processing
+                this.length = files.length;
+                this.processPending();
+            } else {
+                var i, file;
+
+                // Clone the files array
+                for (i = 0; i < files.length; i += 1) {
+                    file = files[i];
+
+                    // ensure the file has some content
+                    if (file.type || file.size > 0) {
+                        this.totalSize += file.size;
+                        this.files.push(file);
+                    }
+                }
+
+                this.length = files.length;
+                resolve(this);
+            }
+        }.bind(this));
     }
 
     // Extracts the files from the folders
@@ -159,10 +160,10 @@ export class DropFiles {
         this.calculating = false;
         this.length = this.files.length;
 
-        // Callback will fire once any processing is complete
-        if (this._callback) {
-            this._callback(this);
-            this._callback = null;
+        if (this.length > 0) {
+            this.resolve(this);
+        } else {
+            this.reject('no files found');
         }
     }
 }
