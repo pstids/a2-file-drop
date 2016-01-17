@@ -216,12 +216,15 @@ export class DropFiles {
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.open(method, url, true);
-            xhr.responseType = 'blob';
+
+            // Android 4.3 doesn't support responseType blob
+            xhr.responseType = 'arraybuffer';
 
             xhr.onload = function () {
                 if (xhr.response && xhr.status >= 200 && xhr.status < 300) {
                     var type = xhr.getResponseHeader('content-type') || 'image/webp',
-                        blob = new Blob([xhr.response], {type: type});
+                        arrayBuffer = new Uint8Array(xhr.response);
+                        blob = new Blob([arrayBuffer], {type: type});
 
                     // Make it look like a file
                     blob.name = url.substring(url.lastIndexOf('/') + 1);
