@@ -223,7 +223,7 @@ export class DropFiles {
             xhr.onload = function () {
                 if (xhr.response && xhr.status >= 200 && xhr.status < 300) {
                     var type = xhr.getResponseHeader('content-type') || 'image/webp',
-                        arrayBuffer = new Uint8Array(xhr.response);
+                        arrayBuffer = new Uint8Array(xhr.response),
                         blob = new Blob([arrayBuffer], {type: type});
 
                     // Make it look like a file

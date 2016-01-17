@@ -17,9 +17,10 @@ var DropService = (function () {
         this._drop = Rx_1.Observable.fromEvent(window, 'drop')
             .map(this._preventDefault)
             .filter(this._checkTarget.bind(this));
-        this._dragover = Rx_1.Observable.fromEvent(window, 'dragover')
+        this._dragenter = Rx_1.Observable.fromEvent(window, 'dragenter')
             .map(this._preventDefault)
             .filter(this._checkTarget.bind(this));
+        this._dragover = Rx_1.Observable.fromEvent(window, 'dragover');
         this._dragleave = Rx_1.Observable.fromEvent(window, 'dragleave')
             .map(this._preventDefault)
             .filter(function (event) {
@@ -32,7 +33,11 @@ var DropService = (function () {
             return false;
         }.bind(this));
         // Start watching for the events
-        this._dragover.subscribe(this._updateClasses.bind(this));
+        this._dragover.subscribe(function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+        this._dragenter.subscribe(this._updateClasses.bind(this));
         this._dragleave.subscribe(this._removeClass.bind(this));
         this._drop.subscribe(function (obj) {
             var observer = this._removeClass(obj);
@@ -65,15 +70,15 @@ var DropService = (function () {
     DropService.prototype.register = function (name, element, callback) {
         var self = this;
         // Register the drop-target
-        this._ensureStream(name);
-        this._streamMapping[name].push(element);
-        this._callbacks[name].push(callback);
-        this._dropTargets.push(element);
+        self._ensureStream(name);
+        self._streamMapping[name].push(element);
+        self._callbacks[name].push(callback);
+        self._dropTargets.push(element);
         // Return the unregister/cleanup callback
         return function () {
-            var index = this._dropTargets.indexOf(element);
+            var index = self._dropTargets.indexOf(element);
             if (index !== -1) {
-                this._dropTargets.splice(index, 1);
+                self._dropTargets.splice(index, 1);
                 // If it is in the drop targets then it will be here
                 index = self._streamMapping[name].indexOf(element);
                 self._streamMapping[name].splice(index, 1);

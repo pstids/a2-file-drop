@@ -8,6 +8,7 @@ export declare class DropService {
     private _streamMapping;
     private _callbacks;
     private _drop;
+    private _dragenter;
     private _dragover;
     private _dragleave;
     static getInstance(): DropService;

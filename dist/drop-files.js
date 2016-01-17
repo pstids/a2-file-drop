@@ -4,26 +4,26 @@ var DropFiles = (function () {
         this.totalSize = 0;
         this.files = [];
         this.calculating = false;
-        var files = event.dataTransfer.files, items = event.dataTransfer.items, either = items || files;
+        var self = this, files = event.dataTransfer.files, items = event.dataTransfer.items, either = items || files;
         this.promise = new Promise(function (resolve, reject) {
-            if (!either || either.length === 0) {
-                reject('no files found');
+            if (!either || files.length === 0) {
+                self._checkImageDrop(self, event.dataTransfer).then(function () { resolve(self); }, function () { reject('no files found'); });
                 return;
             }
             // Do we have file path information available
             if (either[0].kind) {
-                this.resolve = resolve;
-                this.reject = reject;
-                this._pending = [{
+                self.resolve = resolve;
+                self.reject = reject;
+                self._pending = [{
                         items: items,
                         folders: true,
                         path: ''
                     }];
-                this.calculating = true;
+                self.calculating = true;
                 // files are flattened so this should be accurate
                 // at least until we are finished processing
-                this.length = files.length;
-                this.processPending();
+                self.length = files.length;
+                self._processPending();
             }
             else {
                 var i, file;
@@ -32,22 +32,22 @@ var DropFiles = (function () {
                     file = files[i];
                     // ensure the file has some content
                     if (file.type || file.size > 0) {
-                        this.totalSize += file.size;
-                        this.files.push(file);
+                        self.totalSize += file.size;
+                        self.files.push(file);
                     }
                 }
-                this.length = files.length;
-                resolve(this);
+                self.length = files.length;
+                resolve(self);
             }
-        }.bind(this));
+        });
     }
     // Extracts the files from the folders
-    DropFiles.prototype.processPending = function () {
+    DropFiles.prototype._processPending = function () {
         if (this._pending.length > 0) {
             var item = this._pending.shift(), items = item.items, length = items.length;
             // Let's ignore this folder
             if (length === 0 || length === undefined) {
-                setTimeout(this.processPending.bind(this), 0);
+                setTimeout(this._processPending.bind(this), 0);
                 return;
             }
             // Check if this pending item has any folders
@@ -63,7 +63,7 @@ var DropFiles = (function () {
                                 folders: false
                             });
                         }
-                        setTimeout(this.processPending.bind(this), 0);
+                        setTimeout(this._processPending.bind(this), 0);
                     }
                 }.bind(this), processEntry = function (entry, path) {
                     // If it is a directory we add it to the pending queue
@@ -126,14 +126,14 @@ var DropFiles = (function () {
                 // Regular files where we can add them all at once
                 this.files.push.apply(this.files, items);
                 // Delay until next tick (delay and invoke apply are optional)
-                setTimeout(this.processPending.bind(this), 0);
+                setTimeout(this._processPending.bind(this), 0);
             }
         }
         else {
-            this.completeProcessing();
+            this._completeProcessing();
         }
     };
-    DropFiles.prototype.completeProcessing = function () {
+    DropFiles.prototype._completeProcessing = function () {
         this.calculating = false;
         this.length = this.files.length;
         if (this.length > 0) {
@@ -142,6 +142,64 @@ var DropFiles = (function () {
         else {
             this.reject('no files found');
         }
+    };
+    DropFiles.prototype._checkImageDrop = function (self, data) {
+        // Move into the closure so we don't have to bind all functions to 'this'
+        var files = this.files, makeReq = this._makeRequest;
+        return new Promise(function (resolve, reject) {
+            var urls = [], resp = [], html;
+            html = (data && data.getData && data.getData('text/html'));
+            if (!html) {
+                return reject();
+            }
+            html.replace(/<(img src|img [^>]* src) *=\"([^\"]*)\"/gi, function (m, n, src) {
+                urls.push(src);
+            });
+            if (urls.length === 0) {
+                return reject();
+            }
+            self.calculating = true;
+            // Make the requests
+            urls.forEach(function (url) {
+                resp.push(makeReq('GET', url));
+            });
+            Promise.all(resp).then(function (results) {
+                results.forEach(function (file) {
+                    files.push(file);
+                    self.totalSize += file.size;
+                    self.length += 1;
+                });
+                self.calculating = false;
+                resolve();
+            }, function (err) {
+                console.log('rejected');
+                reject();
+            });
+        });
+    };
+    DropFiles.prototype._makeRequest = function (method, url) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(method, url, true);
+            // Android 4.3 doesn't support responseType blob
+            xhr.responseType = 'arraybuffer';
+            xhr.onload = function () {
+                if (xhr.response && xhr.status >= 200 && xhr.status < 300) {
+                    var type = xhr.getResponseHeader('content-type') || 'image/webp', arrayBuffer = new Uint8Array(xhr.response), blob = new Blob([arrayBuffer], { type: type });
+                    // Make it look like a file
+                    blob.name = url.substring(url.lastIndexOf('/') + 1);
+                    blob.dir_path = "";
+                    resolve(blob);
+                }
+                else {
+                    reject(xhr);
+                }
+            };
+            xhr.onerror = function () {
+                reject(xhr);
+            };
+            xhr.send();
+        });
     };
     return DropFiles;
 })();

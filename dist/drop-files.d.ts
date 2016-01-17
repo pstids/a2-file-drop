@@ -8,6 +8,8 @@ export declare class DropFiles {
     private resolve;
     private reject;
     constructor(event: any);
-    private processPending();
-    private completeProcessing();
+    private _processPending();
+    private _completeProcessing();
+    private _checkImageDrop(self, data);
+    private _makeRequest(method, url);
 }
