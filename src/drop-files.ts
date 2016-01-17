@@ -227,8 +227,8 @@ export class DropFiles {
                         blob = new Blob([arrayBuffer], {type: type});
 
                     // Make it look like a file
-                    blob.name = url.substring(url.lastIndexOf('/') + 1);
-                    blob.dir_path = "";
+                    (blob as any).name = url.substring(url.lastIndexOf('/') + 1);
+                    (blob as any).dir_path = '';
 
                     resolve(blob);
                 } else {
