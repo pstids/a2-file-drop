@@ -60,6 +60,11 @@ The project is written in typescript and transpiled into ES5.
 
 You can find more information here: https://github.com/Microsoft/TypeScript/wiki/tsconfig.json
 
+## Scripts
+
+1. Build Script: `npm run build`
+2. Test Script: `npm run test`
+
 
 ## Publishing
 

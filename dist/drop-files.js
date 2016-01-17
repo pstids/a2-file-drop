@@ -1,48 +1,46 @@
 var DropFiles = (function () {
     function DropFiles(event) {
+        this.length = 0;
         this.totalSize = 0;
         this.files = [];
         this.calculating = false;
         var files = event.dataTransfer.files, items = event.dataTransfer.items, either = items || files;
-        if (!either || either.length === 0) {
-            return;
-        }
-        // Do we have file path information available
-        if (either[0].kind) {
-            this._pending = [{
-                    items: items,
-                    folders: true,
-                    path: ''
-                }];
-            this.calculating = true;
-            // files are flattened so this should be accurate
-            // at least until we are finished processing
-            this.length = files.length;
-            this.processPending();
-        }
-        else {
-            var i, file;
-            // Clone the files array
-            for (i = 0; i < files.length; i += 1) {
-                file = files[i];
-                // ensure the file has some content
-                if (file.type || file.size > 0) {
-                    this.totalSize += file.size;
-                    this.files.push(file);
-                }
+        this.promise = new Promise(function (resolve, reject) {
+            if (!either || either.length === 0) {
+                reject('no files found');
+                return;
             }
-            this.length = files.length;
-        }
+            // Do we have file path information available
+            if (either[0].kind) {
+                this.resolve = resolve;
+                this.reject = reject;
+                this._pending = [{
+                        items: items,
+                        folders: true,
+                        path: ''
+                    }];
+                this.calculating = true;
+                // files are flattened so this should be accurate
+                // at least until we are finished processing
+                this.length = files.length;
+                this.processPending();
+            }
+            else {
+                var i, file;
+                // Clone the files array
+                for (i = 0; i < files.length; i += 1) {
+                    file = files[i];
+                    // ensure the file has some content
+                    if (file.type || file.size > 0) {
+                        this.totalSize += file.size;
+                        this.files.push(file);
+                    }
+                }
+                this.length = files.length;
+                resolve(this);
+            }
+        }.bind(this));
     }
-    // Allow listeners to be informed when any processing is complete
-    DropFiles.prototype.onReady = function (callback) {
-        if (this.calculating) {
-            this._callback = callback;
-        }
-        else {
-            callback(this);
-        }
-    };
     // Extracts the files from the folders
     DropFiles.prototype.processPending = function () {
         if (this._pending.length > 0) {
@@ -138,11 +136,11 @@ var DropFiles = (function () {
     DropFiles.prototype.completeProcessing = function () {
         this.calculating = false;
         this.length = this.files.length;
-        // The drop event will only occur once processing
-        // is complete - unlike hover events
-        if (this._callback) {
-            this._callback(this);
-            this._callback = null;
+        if (this.length > 0) {
+            this.resolve(this);
+        }
+        else {
+            this.reject('no files found');
         }
     };
     return DropFiles;

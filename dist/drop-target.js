@@ -15,7 +15,7 @@ var core_2 = require('angular2/core');
 var drop_service_1 = require('./drop-service');
 var DropTarget = (function () {
     function DropTarget(elementRef) {
-        this.highlight = 'drop-hover';
+        this.highlight = 'drop-indicate';
         this._element = elementRef.nativeElement;
     }
     // Register the element you want to recieve drop events
@@ -45,8 +45,8 @@ var DropTarget = (function () {
             selector: '[drop-target]',
             inputs: [
                 'bind: drop-target',
-                'highlight',
-                'stream: file-stream' // name of the stream the files should be sent to
+                'highlight: drop-indicate',
+                'stream: drop-stream' // name of the stream the files should be sent to
             ]
         }),
         __param(0, core_1.Inject(core_1.ElementRef)), 
