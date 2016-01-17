@@ -20,8 +20,14 @@ export class DropFiles {
         this.promise = new Promise(function(resolve, reject) {
             if (!either || files.length === 0) {
                 self._checkImageDrop(self, event.dataTransfer).then(
-                    () => { resolve(self); },
-                    () => { reject('no files found'); }
+                    () => {
+                        self.calculating = false;
+                        resolve(self);
+                    },
+                    () => {
+                        self.calculating = false;
+                        reject('no files found');
+                    }
                 );
                 return;
             }
@@ -202,11 +208,9 @@ export class DropFiles {
                     self.length += 1;
                 });
 
-                self.calculating = false;
                 resolve();
             },
             (err) => {
-                console.log('rejected');
                 reject();
             });
         });
