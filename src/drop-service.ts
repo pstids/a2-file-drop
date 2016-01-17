@@ -18,6 +18,7 @@ export class DropService {
 
     // This are our event observables
     private _drop:     any;
+    private _dragenter:any;
     private _dragover: any;
     private _dragleave:any;
 
@@ -44,10 +45,11 @@ export class DropService {
             .map(this._preventDefault)
             .filter(this._checkTarget.bind(this));
 
-        this._dragover  = Observable.fromEvent(window, 'dragover')
+        this._dragenter  = Observable.fromEvent(window, 'dragenter')
             .map(this._preventDefault)
-            //.throttleTime(300 /* ms */) // Helps with performance a lot
             .filter(this._checkTarget.bind(this));
+
+        this._dragover  = Observable.fromEvent(window, 'dragover');
 
         this._dragleave = Observable.fromEvent(window, 'dragleave')
             .map(this._preventDefault)
@@ -66,7 +68,11 @@ export class DropService {
             }.bind(this));
 
         // Start watching for the events
-        this._dragover.subscribe(this._updateClasses.bind(this));
+        this._dragover.subscribe((event: Event) => {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+        this._dragenter.subscribe(this._updateClasses.bind(this));
         this._dragleave.subscribe(this._removeClass.bind(this));
         this._drop.subscribe(function (obj) {
             var observer = this._removeClass(obj);
