@@ -101,16 +101,16 @@ export class DropService {
         var self = this;
 
         // Register the drop-target
-        this._ensureStream(name);
-        this._streamMapping[name].push(element);
-        this._callbacks[name].push(callback);
-        this._dropTargets.push(element);
+        self._ensureStream(name);
+        self._streamMapping[name].push(element);
+        self._callbacks[name].push(callback);
+        self._dropTargets.push(element);
 
         // Return the unregister/cleanup callback
         return function () {
-            var index:number = this._dropTargets.indexOf(element);
+            var index:number = self._dropTargets.indexOf(element);
             if (index !== -1) {
-                this._dropTargets.splice(index, 1);
+                self._dropTargets.splice(index, 1);
 
                 // If it is in the drop targets then it will be here
                 index = self._streamMapping[name].indexOf(element);
