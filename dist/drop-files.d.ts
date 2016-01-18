@@ -10,6 +10,4 @@ export declare class DropFiles {
     constructor(event: any);
     private _processPending();
     private _completeProcessing();
-    private _checkImageDrop(self, data);
-    private _makeRequest(method, url);
 }

@@ -19,16 +19,7 @@ export class DropFiles {
 
         this.promise = new Promise(function(resolve, reject) {
             if (!either || files.length === 0) {
-                self._checkImageDrop(self, event.dataTransfer).then(
-                    () => {
-                        self.calculating = false;
-                        resolve(self);
-                    },
-                    () => {
-                        self.calculating = false;
-                        reject('no files found');
-                    }
-                );
+                reject('no files found');
                 return;
             }
 
@@ -175,74 +166,5 @@ export class DropFiles {
         } else {
             this.reject('no files found');
         }
-    }
-
-    private _checkImageDrop(self:DropFiles, data) {
-        // Move into the closure so we don't have to bind all functions to 'this'
-        var files = this.files,
-            makeReq = this._makeRequest;
-
-        return new Promise(function (resolve, reject) {
-            var urls = [],
-                resp = [],
-                html;
-
-            html = (data && data.getData && data.getData('text/html'));
-            if (!html) { return reject(); }
-
-            html.replace(/<(img src|img [^>]* src) *=\"([^\"]*)\"/gi, function (m, n, src) {
-                urls.push(src);
-            });
-
-            if (urls.length === 0) { return reject(); }
-            self.calculating = true;
-
-            // Make the requests
-            urls.forEach((url) => {
-                resp.push(makeReq('GET', url));
-            });
-            Promise.all(resp).then((results) => {
-                results.forEach((file) => {
-                    files.push(file);
-                    self.totalSize += file.size;
-                    self.length += 1;
-                });
-
-                resolve();
-            },
-            (err) => {
-                reject();
-            });
-        });
-    }
-
-    private _makeRequest(method, url) {
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.open(method, url, true);
-
-            // Android 4.3 doesn't support responseType blob
-            xhr.responseType = 'arraybuffer';
-
-            xhr.onload = function () {
-                if (xhr.response && xhr.status >= 200 && xhr.status < 300) {
-                    var type = xhr.getResponseHeader('content-type') || 'image/webp',
-                        arrayBuffer = new Uint8Array(xhr.response),
-                        blob = new Blob([arrayBuffer], {type: type});
-
-                    // Make it look like a file
-                    (blob as any).name = url.substring(url.lastIndexOf('/') + 1);
-                    (blob as any).dir_path = '';
-
-                    resolve(blob);
-                } else {
-                    reject(xhr);
-                }
-            };
-            xhr.onerror = function () {
-                reject(xhr);
-            };
-            xhr.send();
-        });
     }
 }
