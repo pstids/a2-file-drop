@@ -3,9 +3,6 @@ import {Observable} from 'rxjs/Rx';
 import {DropFiles} from './drop-files';
 
 export class DropService {
-    static instance:DropService;
-    static isCreating:Boolean = false;
-
     // All the elements we are interested in highlighting when the mouse is over them
     private _dropTargets:  HTMLScriptElement[] = [];
     private _currentTarget:HTMLScriptElement;
@@ -23,23 +20,7 @@ export class DropService {
     private _dragleave:any;
 
 
-    // This is a singleton class
-    static getInstance(): DropService {
-        if (!DropService.instance) {
-            DropService.isCreating = true;
-            DropService.instance = new DropService();
-            DropService.isCreating = false;
-        }
-
-        return DropService.instance;
-    }
-
-
     constructor() {
-        if (!DropService.isCreating) {
-            throw new Error('You can\'t call new in Singleton instances!');
-        }
-
         // Define the event streams
         this._drop = Observable.fromEvent(window, 'drop')
             .map(this._preventDefault)
