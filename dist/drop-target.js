@@ -7,23 +7,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 var core_1 = require('angular2/core');
 var core_2 = require('angular2/core');
 var drop_service_1 = require('./drop-service');
 var DropTarget = (function () {
-    function DropTarget(elementRef) {
+    function DropTarget(elementRef, _dropService) {
+        this._dropService = _dropService;
         this.highlight = 'drop-indicate';
         this._element = elementRef.nativeElement;
     }
     // Register the element you want to recieve drop events
     DropTarget.prototype.ngOnInit = function () {
-        if (this.bind) {
-            this._element = document.querySelector(this.bind);
+        var self = this;
+        if (self.bind) {
+            self._element = document.querySelector(self.bind);
         }
-        this._unreg = drop_service_1.DropService.getInstance().register(this.stream, this._element, this._doHighlight.bind(this));
+        self._unreg = self._dropService.register(self.stream, self._element, self._doHighlight.bind(self));
     };
     // Ensure all the bindings and classes are removed
     DropTarget.prototype.ngOnDestroy = function () {
@@ -43,14 +42,17 @@ var DropTarget = (function () {
     DropTarget = __decorate([
         core_2.Directive({
             selector: '[drop-target]',
+            // If added as a provider then a new instance is created for every DropTarget
+            // this is not desirable and as drop service should be available application wide
+            // it should be added to the initial bootstrap
+            //providers: [DropService],
             inputs: [
                 'bind: drop-target',
                 'highlight: drop-indicate',
                 'stream: drop-stream' // name of the stream the files should be sent to
             ]
-        }),
-        __param(0, core_1.Inject(core_1.ElementRef)), 
-        __metadata('design:paramtypes', [core_1.ElementRef])
+        }), 
+        __metadata('design:paramtypes', [core_1.ElementRef, drop_service_1.DropService])
     ], DropTarget);
     return DropTarget;
 })();

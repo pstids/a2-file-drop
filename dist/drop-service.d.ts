@@ -1,6 +1,4 @@
 export declare class DropService {
-    static instance: DropService;
-    static isCreating: Boolean;
     private _dropTargets;
     private _currentTarget;
     private _streams;
@@ -11,7 +9,6 @@ export declare class DropService {
     private _dragenter;
     private _dragover;
     private _dragleave;
-    static getInstance(): DropService;
     constructor();
     register(name: string, element: HTMLScriptElement, callback: (state: boolean) => void): () => void;
     getStream(name: string): any;

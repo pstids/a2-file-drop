@@ -10,9 +10,6 @@ var DropService = (function () {
         this._observers = {}; // stream name => observer
         this._streamMapping = {}; // stream name => element array
         this._callbacks = {}; // stream name => callback array
-        if (!DropService.isCreating) {
-            throw new Error('You can\'t call new in Singleton instances!');
-        }
         // Define the event streams
         this._drop = Rx_1.Observable.fromEvent(window, 'drop')
             .map(this._preventDefault)
@@ -57,15 +54,6 @@ var DropService = (function () {
             }
         }.bind(this), false);
     }
-    // This is a singleton class
-    DropService.getInstance = function () {
-        if (!DropService.instance) {
-            DropService.isCreating = true;
-            DropService.instance = new DropService();
-            DropService.isCreating = false;
-        }
-        return DropService.instance;
-    };
     // Configures an element to become a drop target
     DropService.prototype.register = function (name, element, callback) {
         var self = this;
@@ -181,7 +169,6 @@ var DropService = (function () {
         }
         return observer;
     };
-    DropService.isCreating = false;
     return DropService;
 })();
 exports.DropService = DropService;
