@@ -29,8 +29,10 @@ Note:: You can create your own directive that is customised for your application
 ### Processing the files once they have been dropped
 
 1. Create a service that will `import {DropService} from 'a2-file-drop/dist/drop-service';`
-2. Observe events coming from the relevent file stream
-    * `var stream = DropService.getInstance().getStream('media');`
+2. Ensure dropservice is only initialised once `bootstrap(App, [DropService]);`
+3. Observe events coming from the relevent file stream
+    * Inject the dependency `constructor(dropService: DropService) {}`
+    * `var stream = dropService.getStream('media');`
     * `stream.filter().map()` etc etc
     * `stream.subscribe(function (obj) { if (obj.event === 'drop') {}});`
 
