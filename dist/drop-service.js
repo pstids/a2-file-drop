@@ -10,34 +10,40 @@ var DropService = (function () {
         this._observers = {}; // stream name => observer
         this._streamMapping = {}; // stream name => element array
         this._callbacks = {}; // stream name => callback array
+        var self = this, overFired = false;
         // Define the event streams
-        this._drop = Rx_1.Observable.fromEvent(window, 'drop')
-            .map(this._preventDefault)
-            .filter(this._checkTarget.bind(this));
-        this._dragenter = Rx_1.Observable.fromEvent(window, 'dragenter')
-            .map(this._preventDefault)
-            .filter(this._checkTarget.bind(this));
-        this._dragover = Rx_1.Observable.fromEvent(window, 'dragover');
-        this._dragleave = Rx_1.Observable.fromEvent(window, 'dragleave')
-            .map(this._preventDefault)
+        self._drop = Rx_1.Observable.fromEvent(window, 'drop')
+            .map(self._preventDefault)
+            .filter(self._checkTarget.bind(self));
+        self._dragover = Rx_1.Observable.fromEvent(window, 'dragover')
+            .map(self._preventDefault)
+            .filter(self._checkTarget.bind(self));
+        self._dragleave = Rx_1.Observable.fromEvent(window, 'dragleave')
+            .map(self._preventDefault)
             .filter(function (event) {
-            var dropTargets = this._dropTargets, target = event.target, i;
+            var dropTargets = self._dropTargets, target = event.target, i;
             for (i = 0; i < dropTargets.length; i += 1) {
                 if (dropTargets[i] === target) {
                     return true;
                 }
             }
             return false;
-        }.bind(this));
-        // Start watching for the events
-        this._dragover.subscribe(function (event) {
-            event.preventDefault();
-            event.stopPropagation();
         });
-        this._dragenter.subscribe(this._updateClasses.bind(this));
-        this._dragleave.subscribe(this._removeClass.bind(this));
-        this._drop.subscribe(function (obj) {
-            var observer = this._removeClass(obj);
+        // Start watching for the events
+        self._dragover.subscribe(function (obj) {
+            overFired = true;
+            self._updateClasses(obj);
+        });
+        self._dragleave.subscribe(function (obj) {
+            overFired = false;
+            setTimeout(function () {
+                if (!overFired) {
+                    self._removeClass(obj);
+                }
+            }, 0);
+        });
+        self._drop.subscribe(function (obj) {
+            var observer = self._removeClass(obj);
             // Stream the files
             if (observer) {
                 observer.next({
@@ -45,14 +51,14 @@ var DropService = (function () {
                     data: new drop_files_1.DropFiles(obj.originalEvent)
                 });
             }
-        }.bind(this));
+        });
         // Detect when the mouse leaves the window (special case)
         document.addEventListener('mouseout', function (event) {
-            if (this._currentTarget && !event.toElement) {
-                this._performCallback(this._currentTarget, false);
-                this._currentTarget = null;
+            if (self._currentTarget && !event.toElement) {
+                self._performCallback(self._currentTarget, false);
+                self._currentTarget = null;
             }
-        }.bind(this), false);
+        }, false);
     }
     // Configures an element to become a drop target
     DropService.prototype.register = function (name, element, callback) {
