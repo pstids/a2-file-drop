@@ -19,12 +19,19 @@ discoverability.
 Note:: You can create your own directive that is customised for your application.
 `DropService` does all the heavy lifting allowing maximum flexibility for app integration.
 
-### Directive Provided
+### Drag and Drop Directive
 
 1. Include the directive in your Component or Directive
      * `import {DropTarget} from 'a2-file-drop/dist/drop-target';`
 2. Add the directive to the target elements
      * `<div drop-target drop-stream="media-uploads" drop-indicate="hover-class"></div>`
+
+### File Input Directive
+
+1. Include the directive in your Component or Directive
+     * `import {DropTarget} from 'a2-file-drop/dist/file-stream';`
+2. Add the directive to the target elements
+     * `<input type="file" multiple file-stream="media-uploads">`
 
 ### Processing the files once they have been dropped
 
@@ -41,6 +48,7 @@ The subscription emit events:
 * `'over'`: There is currently a hover event
 * `'left'`: There is no more hover event
 * `'drop'`: Files have been dropped
+* `'push'`: Files have been pushed from an input selection box
 
 
 ## Options

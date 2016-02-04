@@ -120,6 +120,20 @@ export class DropService {
         };
     }
 
+    pushFiles(stream:string, files) {
+        var observer = this._observers[stream];
+        if (observer) {
+            observer.next({
+                event: 'push',
+                data: new DropFiles({
+                    dataTransfer: {
+                        files: files
+                    }
+                })
+            });
+        }
+    }
+
     // Hooks up a function to recieve a the files from a particular stream
     // 3 events: 'over', 'left', 'drop'
     getStream(name: string) {
