@@ -29,7 +29,7 @@ Note:: You can create your own directive that is customised for your application
 ### File Input Directive
 
 1. Include the directive in your Component or Directive
-     * `import {DropTarget} from 'a2-file-drop/dist/file-stream';`
+     * `import {FileStream} from 'a2-file-drop/dist/file-stream';`
 2. Add the directive to the target elements
      * `<input type="file" multiple file-stream="media-uploads">`
 

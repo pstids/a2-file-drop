@@ -12,6 +12,7 @@ export declare class DropService {
     private _counter;
     constructor();
     register(name: string, element: HTMLScriptElement, callback: (state: boolean) => void): () => void;
+    pushFiles(stream: string, files: any): void;
     getStream(name: string): any;
     private _ensureStream(name);
     private _preventDefault(event);

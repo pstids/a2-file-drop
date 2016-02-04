@@ -10,6 +10,7 @@
     "outDir": "./dist"
   },
   "files": [
-    "src/drop-target.ts"
+    "src/drop-target.ts",
+    "src/file-stream.ts"
   ]
 }

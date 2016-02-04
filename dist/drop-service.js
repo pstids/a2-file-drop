@@ -90,6 +90,19 @@ var DropService = (function () {
             }
         };
     };
+    DropService.prototype.pushFiles = function (stream, files) {
+        var observer = this._observers[stream];
+        if (observer) {
+            observer.next({
+                event: 'push',
+                data: new drop_files_1.DropFiles({
+                    dataTransfer: {
+                        files: files
+                    }
+                })
+            });
+        }
+    };
     // Hooks up a function to recieve a the files from a particular stream
     // 3 events: 'over', 'left', 'drop'
     DropService.prototype.getStream = function (name) {
