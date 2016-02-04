@@ -13,16 +13,16 @@ var drop_service_1 = require('./drop-service');
 var DropTarget = (function () {
     function DropTarget(elementRef, _dropService) {
         this._dropService = _dropService;
-        this.highlight = 'drop-indicate';
+        this.dropIndicate = 'drop-indicate';
         this._element = elementRef.nativeElement;
     }
     // Register the element you want to recieve drop events
     DropTarget.prototype.ngOnInit = function () {
         var self = this;
-        if (self.bind) {
-            self._element = document.querySelector(self.bind);
+        if (self.dropTarget) {
+            self._element = document.querySelector(self.dropTarget);
         }
-        self._unreg = self._dropService.register(self.stream, self._element, self._doHighlight.bind(self));
+        self._unreg = self._dropService.register(self.dropStream, self._element, self._doHighlight.bind(self));
     };
     // Ensure all the bindings and classes are removed
     DropTarget.prototype.ngOnDestroy = function () {
@@ -33,23 +33,23 @@ var DropTarget = (function () {
     // Applies the hover class to the element
     DropTarget.prototype._doHighlight = function (state) {
         if (state) {
-            this._element.classList.add(this.highlight);
+            this._element.classList.add(this.dropIndicate);
         }
         else {
-            this._element.classList.remove(this.highlight);
+            this._element.classList.remove(this.dropIndicate);
         }
     };
     DropTarget = __decorate([
         core_2.Directive({
-            selector: '[drop-target]',
+            selector: '[dropTarget]',
             // If added as a provider then a new instance is created for every DropTarget
             // this is not desirable and as drop service should be available application wide
             // it should be added to the initial bootstrap
             //providers: [DropService],
             inputs: [
-                'bind: drop-target',
-                'highlight: drop-indicate',
-                'stream: drop-stream' // name of the stream the files should be sent to
+                'dropTarget',
+                'dropIndicate',
+                'dropStream' // name of the stream the files should be sent to
             ]
         }), 
         __metadata('design:paramtypes', [core_1.ElementRef, drop_service_1.DropService])

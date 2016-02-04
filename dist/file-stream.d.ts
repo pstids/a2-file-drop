@@ -3,7 +3,7 @@ import { OnInit } from 'angular2/core';
 import { DropService } from './drop-service';
 export declare class FileStream implements OnInit {
     private _dropService;
-    stream: string;
+    fileStream: string;
     private _element;
     constructor(elementRef: ElementRef, _dropService: DropService);
     ngOnInit(): void;
