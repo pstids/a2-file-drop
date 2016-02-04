@@ -10,37 +10,54 @@ var DropService = (function () {
         this._observers = {}; // stream name => observer
         this._streamMapping = {}; // stream name => element array
         this._callbacks = {}; // stream name => callback array
-        var self = this, overFired = false;
+        // Tracks the number of dragenter events by tracking
+        // the target elements (works around a firefox issue)
+        this._counter = new Set();
+        var self = this, overFired;
         // Define the event streams
         self._drop = Rx_1.Observable.fromEvent(window, 'drop')
             .map(self._preventDefault)
             .filter(self._checkTarget.bind(self));
-        self._dragover = Rx_1.Observable.fromEvent(window, 'dragover')
+        // Prevent default on all dragover events
+        self._dragover = Rx_1.Observable.fromEvent(window, 'dragover').subscribe(function (event) {
+            event.preventDefault();
+        });
+        self._dragenter = Rx_1.Observable.fromEvent(window, 'dragenter')
             .map(self._preventDefault)
             .filter(self._checkTarget.bind(self));
         self._dragleave = Rx_1.Observable.fromEvent(window, 'dragleave')
             .map(self._preventDefault)
             .filter(function (event) {
             var dropTargets = self._dropTargets, target = event.target, i;
-            for (i = 0; i < dropTargets.length; i += 1) {
-                if (dropTargets[i] === target) {
-                    return true;
+            self._counter.delete(target);
+            // Exit early if the current counter is 0
+            // This means we've left the body
+            if (self._counter.size <= 0) {
+                self._counter = new Set();
+                if (self._currentTarget) {
+                    self._performCallback(self._currentTarget, false);
+                    self._currentTarget = null;
+                }
+            }
+            else {
+                for (i = 0; i < dropTargets.length; i += 1) {
+                    if (dropTargets[i] === target) {
+                        return true;
+                    }
                 }
             }
             return false;
         });
         // Start watching for the events
-        self._dragover.subscribe(function (obj) {
-            overFired = true;
+        self._dragenter.subscribe(function (obj) {
+            overFired = obj.target;
             self._updateClasses(obj);
         });
         self._dragleave.subscribe(function (obj) {
-            overFired = false;
-            setTimeout(function () {
-                if (!overFired) {
-                    self._removeClass(obj);
-                }
-            }, 0);
+            if (!overFired) {
+                self._removeClass(obj);
+            }
+            overFired = null;
         });
         self._drop.subscribe(function (obj) {
             var observer = self._removeClass(obj);
@@ -52,13 +69,6 @@ var DropService = (function () {
                 });
             }
         });
-        // Detect when the mouse leaves the window (special case)
-        document.addEventListener('mouseout', function (event) {
-            if (self._currentTarget && !event.toElement) {
-                self._performCallback(self._currentTarget, false);
-                self._currentTarget = null;
-            }
-        }, false);
     }
     // Configures an element to become a drop target
     DropService.prototype.register = function (name, element, callback) {
@@ -106,12 +116,21 @@ var DropService = (function () {
         event.stopPropagation();
         return {
             originalEvent: event,
-            target: event.target
+            target: event.target,
+            type: event.type
         };
     };
     // Checks if we need to perform a class addition or removal
     DropService.prototype._checkTarget = function (obj) {
-        var dropTargets = this._dropTargets, target = obj.target;
+        var self = this, dropTargets = self._dropTargets, target = obj.target;
+        // We have to count the objects using a set as firefox
+        // often fires events twice
+        if (obj.type === 'dragenter') {
+            self._counter.add(target);
+        }
+        else {
+            self._counter = new Set();
+        }
         while (target) {
             if (dropTargets.indexOf(target) !== -1) {
                 break;
@@ -119,7 +138,7 @@ var DropService = (function () {
             target = target.parentNode;
         }
         obj.target = target;
-        if (target || this._currentTarget)
+        if (target || self._currentTarget)
             return true;
         return false;
     };
@@ -153,9 +172,9 @@ var DropService = (function () {
         }
         // Have we moved over a new target
         if (target && currentTarget !== target) {
-            stream = this._performCallback(target, true, stream);
+            stream = this._performCallback(target, true);
             // If this is a new hover - let our subscribers know
-            if (!currentTarget) {
+            if (target) {
                 this._notifyObservers(stream, {
                     event: 'over'
                 });

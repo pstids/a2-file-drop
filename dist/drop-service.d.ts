@@ -9,6 +9,7 @@ export declare class DropService {
     private _dragenter;
     private _dragover;
     private _dragleave;
+    private _counter;
     constructor();
     register(name: string, element: HTMLScriptElement, callback: (state: boolean) => void): () => void;
     getStream(name: string): any;
