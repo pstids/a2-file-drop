@@ -47,8 +47,7 @@ The subscription emit events:
 
 * `'over'`: There is currently a hover event
 * `'left'`: There is no more hover event
-* `'drop'`: Files have been dropped
-* `'push'`: Files have been pushed from an input selection box
+* `'drop'`: Files have been dropped or selected
 
 
 ## Options

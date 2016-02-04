@@ -124,7 +124,7 @@ export class DropService {
         var observer = this._observers[stream];
         if (observer) {
             observer.next({
-                event: 'push',
+                event: 'drop',
                 data: new DropFiles({
                     dataTransfer: {
                         files: files

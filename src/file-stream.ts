@@ -4,16 +4,16 @@ import {DropService} from './drop-service';
 
 
 @Directive({
-    selector: '[file-stream]',
+    selector: '[fileStream]',
     // If added as a provider then a new instance is created for every DropTarget
     // this is not desirable and as drop service should be available application wide
     // it should be added to the initial bootstrap
     inputs: [
-        'stream: file-stream'       // name of the stream the files should be sent to
+        'fileStream'       // name of the stream the files should be sent to
     ]
 })
 export class FileStream implements OnInit {
-    stream: string;
+    fileStream: string;
     private _element: any;
 
 
@@ -26,7 +26,7 @@ export class FileStream implements OnInit {
     ngOnInit() {
         var self = this;
         self._element.addEventListener('change', function () {
-            self._dropService.pushFiles(self.stream, this.files);
+            self._dropService.pushFiles(self.fileStream, this.files);
         }, false);
     }
 }
