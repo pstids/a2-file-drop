@@ -1,4 +1,4 @@
-import {DropFiles} from "./drop-files";
+import {DropFiles} from './drop-files';
 
 
 describe('drop file extraction class', () => {
@@ -26,4 +26,4 @@ describe('drop file extraction class', () => {
             expect(files.promise).toBeDefined();
         });
     });
-}
+});
