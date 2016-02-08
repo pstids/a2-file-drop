@@ -17,7 +17,7 @@ export class DropFiles {
             items:Array<any> = event.dataTransfer.items,
             either:Array<any> = items || files;
 
-        this.promise = new Promise(function(resolve, reject) {
+        self.promise = new Promise(function(resolve, reject) {
             if (!either || files.length === 0) {
                 reject('no files found');
                 return;
@@ -60,14 +60,16 @@ export class DropFiles {
 
     // Extracts the files from the folders
     private _processPending() {
-        if (this._pending.length > 0) {
-            var item = this._pending.shift(),
+        var self = this;
+
+        if (self._pending.length > 0) {
+            var item = self._pending.shift(),
                 items = item.items,
                 length = items.length;
 
             // Let's ignore this folder
             if (length === 0 || length === undefined) {
-                setTimeout(this._processPending.bind(this), 0);
+                setTimeout(self._processPending, 0);
                 return;
             }
 
@@ -84,45 +86,45 @@ export class DropFiles {
                         if (count >= length) {
                             if (new_items.length > 0) {
                                 // add any files to the start of the queue
-                                this._pending.unshift({
+                                self._pending.unshift({
                                     items: new_items,
                                     folders: false
                                 });
                             }
-                            setTimeout(this._processPending.bind(this), 0);
+                            setTimeout(self._processPending, 0);
                         }
-                    }.bind(this),
+                    },
                     processEntry = function (entry, path) {
                         // If it is a directory we add it to the pending queue
                         try {
                             if (entry.isDirectory) {
                                 entry.createReader().readEntries(function (entries) {
-                                    this._pending.push({
+                                    self._pending.push({
                                         items: entries,
                                         folders: true,
                                         path: path + entry.name + '/'
                                     });
                                     checkCount();
-                                }.bind(this));
+                                });
                             } else if (entry.isFile) {
                                 // Files are added to a file queue
                                 entry.file(function (file) {
                                     file.dir_path = path;
 
                                     if (file.type || file.size > 0) {
-                                        this.totalSize += file.size;
+                                        self.totalSize += file.size;
                                         new_items.push(file);
                                     }
 
                                     checkCount();
-                                }.bind(this));
+                                });
                             } else {
                                 checkCount();
                             }
                         } catch (err) {
                             checkCount();
                         }
-                    }.bind(this);
+                    };
 
                 for (i = 0; i < length; i += 1) {
                     // first layer of DnD folders require you to getAsEntry
@@ -136,7 +138,7 @@ export class DropFiles {
                             // Opera support
                             entry = obj.getAsFile();
                             if (entry.size > 0) {
-                                this.totalSize += entry.size;
+                                self.totalSize += entry.size;
                                 new_items.push(entry);
                             }
                             checkCount();
@@ -148,23 +150,25 @@ export class DropFiles {
                 }
             } else {
                 // Regular files where we can add them all at once
-                this.files.push.apply(this.files, items);
+                self.files.push.apply(self.files, items);
                 // Delay until next tick (delay and invoke apply are optional)
-                setTimeout(this._processPending.bind(this), 0);
+                setTimeout(self._processPending, 0);
             }
         } else {
-            this._completeProcessing();
+            self._completeProcessing();
         }
     }
 
     private _completeProcessing() {
-        this.calculating = false;
-        this.length = this.files.length;
+        var self = this;
+        
+        self.calculating = false;
+        self.length = self.files.length;
 
-        if (this.length > 0) {
-            this.resolve(this);
+        if (self.length > 0) {
+            self.resolve(self);
         } else {
-            this.reject('no files found');
+            self.reject('no files found');
         }
     }
 }
