@@ -145,16 +145,18 @@ export class DropService {
     // Initialises a new file stream if it did not exist
     private _ensureStream(name: string) {
         if (!this._streams[name]) {
-            this._streams[name] = new Observable<{event:string, data?:DropFiles}>(function (observer) {
-                this._observers[name] = observer;
+            var self = this;
 
-                return function () {
-                    this._observers[name] = null;
+            self._streams[name] = new Observable<{ event: string, data?: DropFiles }>(function(observer) {
+                self._observers[name] = observer;
+
+                return function() {
+                    self._observers[name] = null;
                 };
-            }.bind(this)).share();
-            this._observers[name] = null;
-            this._streamMapping[name] = [];
-            this._callbacks[name] = [];
+            }).share();
+            self._observers[name] = null;
+            self._streamMapping[name] = [];
+            self._callbacks[name] = [];
         }
     }
 
