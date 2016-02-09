@@ -1,3 +1,4 @@
+/// <reference path="../typings/main.d.ts" />
 import {DropFiles} from './drop-files';
 
 
