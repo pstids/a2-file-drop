@@ -5,7 +5,7 @@ var DropFiles = (function () {
         this.files = [];
         this.calculating = false;
         var self = this, files = event.dataTransfer.files, items = event.dataTransfer.items, either = items || files;
-        this.promise = new Promise(function (resolve, reject) {
+        self.promise = new Promise(function (resolve, reject) {
             if (!either || files.length === 0) {
                 reject('no files found');
                 return;
@@ -43,11 +43,12 @@ var DropFiles = (function () {
     }
     // Extracts the files from the folders
     DropFiles.prototype._processPending = function () {
-        if (this._pending.length > 0) {
-            var item = this._pending.shift(), items = item.items, length = items.length;
+        var self = this;
+        if (self._pending.length > 0) {
+            var item = self._pending.shift(), items = item.items, length = items.length;
             // Let's ignore this folder
             if (length === 0 || length === undefined) {
-                setTimeout(this._processPending.bind(this), 0);
+                setTimeout(self._processPending, 0);
                 return;
             }
             // Check if this pending item has any folders
@@ -58,36 +59,36 @@ var DropFiles = (function () {
                     if (count >= length) {
                         if (new_items.length > 0) {
                             // add any files to the start of the queue
-                            this._pending.unshift({
+                            self._pending.unshift({
                                 items: new_items,
                                 folders: false
                             });
                         }
-                        setTimeout(this._processPending.bind(this), 0);
+                        setTimeout(self._processPending, 0);
                     }
-                }.bind(this), processEntry = function (entry, path) {
+                }, processEntry = function (entry, path) {
                     // If it is a directory we add it to the pending queue
                     try {
                         if (entry.isDirectory) {
                             entry.createReader().readEntries(function (entries) {
-                                this._pending.push({
+                                self._pending.push({
                                     items: entries,
                                     folders: true,
                                     path: path + entry.name + '/'
                                 });
                                 checkCount();
-                            }.bind(this));
+                            });
                         }
                         else if (entry.isFile) {
                             // Files are added to a file queue
                             entry.file(function (file) {
                                 file.dir_path = path;
                                 if (file.type || file.size > 0) {
-                                    this.totalSize += file.size;
+                                    self.totalSize += file.size;
                                     new_items.push(file);
                                 }
                                 checkCount();
-                            }.bind(this));
+                            });
                         }
                         else {
                             checkCount();
@@ -96,7 +97,7 @@ var DropFiles = (function () {
                     catch (err) {
                         checkCount();
                     }
-                }.bind(this);
+                };
                 for (i = 0; i < length; i += 1) {
                     // first layer of DnD folders require you to getAsEntry
                     if (item.path.length === 0) {
@@ -110,7 +111,7 @@ var DropFiles = (function () {
                             // Opera support
                             entry = obj.getAsFile();
                             if (entry.size > 0) {
-                                this.totalSize += entry.size;
+                                self.totalSize += entry.size;
                                 new_items.push(entry);
                             }
                             checkCount();
@@ -124,23 +125,24 @@ var DropFiles = (function () {
             }
             else {
                 // Regular files where we can add them all at once
-                this.files.push.apply(this.files, items);
+                self.files.push.apply(self.files, items);
                 // Delay until next tick (delay and invoke apply are optional)
-                setTimeout(this._processPending.bind(this), 0);
+                setTimeout(self._processPending, 0);
             }
         }
         else {
-            this._completeProcessing();
+            self._completeProcessing();
         }
     };
     DropFiles.prototype._completeProcessing = function () {
-        this.calculating = false;
-        this.length = this.files.length;
-        if (this.length > 0) {
-            this.resolve(this);
+        var self = this;
+        self.calculating = false;
+        self.length = self.files.length;
+        if (self.length > 0) {
+            self.resolve(self);
         }
         else {
-            this.reject('no files found');
+            self.reject('no files found');
         }
     };
     return DropFiles;

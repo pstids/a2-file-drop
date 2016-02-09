@@ -112,15 +112,16 @@ var DropService = (function () {
     // Initialises a new file stream if it did not exist
     DropService.prototype._ensureStream = function (name) {
         if (!this._streams[name]) {
-            this._streams[name] = new Rx_1.Observable(function (observer) {
-                this._observers[name] = observer;
+            var self = this;
+            self._streams[name] = new Rx_1.Observable(function (observer) {
+                self._observers[name] = observer;
                 return function () {
-                    this._observers[name] = null;
+                    self._observers[name] = null;
                 };
-            }.bind(this)).share();
-            this._observers[name] = null;
-            this._streamMapping[name] = [];
-            this._callbacks[name] = [];
+            }).share();
+            self._observers[name] = null;
+            self._streamMapping[name] = [];
+            self._callbacks[name] = [];
         }
     };
     // The new stream object allows us to change the target (read only in the originalEvent)
