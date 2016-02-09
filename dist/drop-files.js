@@ -48,7 +48,7 @@ var DropFiles = (function () {
             var item = self._pending.shift(), items = item.items, length = items.length;
             // Let's ignore this folder
             if (length === 0 || length === undefined) {
-                setTimeout(self._processPending, 0);
+                setTimeout(self._processPending.bind(self), 0);
                 return;
             }
             // Check if this pending item has any folders
@@ -64,7 +64,7 @@ var DropFiles = (function () {
                                 folders: false
                             });
                         }
-                        setTimeout(self._processPending, 0);
+                        setTimeout(self._processPending.bind(self), 0);
                     }
                 }, processEntry = function (entry, path) {
                     // If it is a directory we add it to the pending queue
@@ -127,7 +127,7 @@ var DropFiles = (function () {
                 // Regular files where we can add them all at once
                 self.files.push.apply(self.files, items);
                 // Delay until next tick (delay and invoke apply are optional)
-                setTimeout(self._processPending, 0);
+                setTimeout(self._processPending.bind(self), 0);
             }
         }
         else {

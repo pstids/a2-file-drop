@@ -69,7 +69,7 @@ export class DropFiles {
 
             // Let's ignore this folder
             if (length === 0 || length === undefined) {
-                setTimeout(self._processPending, 0);
+                setTimeout(self._processPending.bind(self), 0);
                 return;
             }
 
@@ -91,7 +91,7 @@ export class DropFiles {
                                     folders: false
                                 });
                             }
-                            setTimeout(self._processPending, 0);
+                            setTimeout(self._processPending.bind(self), 0);
                         }
                     },
                     processEntry = function (entry, path) {
@@ -152,7 +152,7 @@ export class DropFiles {
                 // Regular files where we can add them all at once
                 self.files.push.apply(self.files, items);
                 // Delay until next tick (delay and invoke apply are optional)
-                setTimeout(self._processPending, 0);
+                setTimeout(self._processPending.bind(self), 0);
             }
         } else {
             self._completeProcessing();
