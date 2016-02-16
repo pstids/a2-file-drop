@@ -41,7 +41,20 @@ Note:: You can create your own directive that is customised for your application
     * Inject the dependency `constructor(dropService: DropService) {}`
     * `var stream = dropService.getStream('media');`
     * `stream.filter().map()` etc etc
-    * `stream.subscribe(function (obj) { if (obj.event === 'drop') {}});`
+    * then:
+
+```typescript
+
+stream.subscribe((obj) => {
+    if (obj.data && obj.event === 'drop') {
+        obj.data.promise.then((data) => {
+            // At this point all file data has been collected
+            console.log(data.files);
+        });
+    }
+});
+
+```
 
 The subscription emit events:
 
