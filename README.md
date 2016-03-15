@@ -54,6 +54,21 @@ stream.subscribe((obj) => {
     }
 });
 
+// OR
+
+stream.filter((obj) => {
+    // Files only available on a drop event
+    return obj.data && obj.data.length > 0;
+}).flatMap((obj) => {
+    // Wait for the files to be collected
+    return obj.data.promise;
+}).map((obj) => {
+    // Return just the array of files
+    return obj.files;
+}).subscribe((files) => {
+    console.log(files);
+});
+
 ```
 
 The subscription emit events:
