@@ -1,3 +1,4 @@
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -7,8 +8,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var core_1 = require('angular2/core');
-var core_2 = require('angular2/core');
+var core_1 = require('@angular/core');
+var core_2 = require('@angular/core');
 var drop_service_1 = require('./drop-service');
 var FileStream = (function () {
     function FileStream(elementRef, _dropService) {
@@ -36,6 +37,6 @@ var FileStream = (function () {
         __metadata('design:paramtypes', [core_1.ElementRef, drop_service_1.DropService])
     ], FileStream);
     return FileStream;
-})();
+}());
 exports.FileStream = FileStream;
 //# sourceMappingURL=file-stream.js.map

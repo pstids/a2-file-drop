@@ -1,5 +1,5 @@
-import {ElementRef} from 'angular2/core';
-import {Directive, OnInit} from 'angular2/core';
+import {ElementRef} from '@angular/core';
+import {Directive, OnInit} from '@angular/core';
 import {DropService} from './drop-service';
 
 

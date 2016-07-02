@@ -1,3 +1,4 @@
+"use strict";
 // Require what we need from rxjs
 var Rx_1 = require('rxjs/Rx');
 var drop_files_1 = require('./drop-files');
@@ -209,6 +210,6 @@ var DropService = (function () {
         return observer;
     };
     return DropService;
-})();
+}());
 exports.DropService = DropService;
 //# sourceMappingURL=drop-service.js.map

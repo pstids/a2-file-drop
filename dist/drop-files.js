@@ -1,3 +1,4 @@
+"use strict";
 var DropFiles = (function () {
     function DropFiles(event) {
         this.length = 0;
@@ -146,6 +147,6 @@ var DropFiles = (function () {
         }
     };
     return DropFiles;
-})();
+}());
 exports.DropFiles = DropFiles;
 //# sourceMappingURL=drop-files.js.map

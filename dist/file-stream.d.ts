@@ -1,5 +1,5 @@
-import { ElementRef } from 'angular2/core';
-import { OnInit } from 'angular2/core';
+import { ElementRef } from '@angular/core';
+import { OnInit } from '@angular/core';
 import { DropService } from './drop-service';
 export declare class FileStream implements OnInit {
     private _dropService;

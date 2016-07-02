@@ -1,5 +1,5 @@
-import { ElementRef } from 'angular2/core';
-import { OnInit, OnDestroy } from 'angular2/core';
+import { ElementRef } from '@angular/core';
+import { OnInit, OnDestroy } from '@angular/core';
 import { DropService } from './drop-service';
 export declare class DropTarget implements OnInit, OnDestroy {
     private _dropService;

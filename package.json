@@ -4,7 +4,7 @@
   },
   "contributors": [],
   "devDependencies": {
-    "angular2": "latest",
+    "@angular/core": "latest",
     "rxjs": "latest",
     "jasmine-core": "latest",
     "karma": "latest",
